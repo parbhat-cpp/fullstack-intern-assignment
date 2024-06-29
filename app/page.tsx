@@ -5,6 +5,10 @@ import { setToken } from '@/redux/auth/auth.slice';
 import useAuthSession from '../hooks/useAuthSession';
 import { useAppDispatch } from '@/redux/store';
 
+// for toast notification
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const HomePage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -12,7 +16,35 @@ const HomePage = () => {
   const user = useAuthSession();
 
   const handleLogin = async () => {
-    // Implement the logic to authenticate the user
+    // check if username and password were entered
+    if (!username || !password) {
+      toast.warn("Please enter every field");
+      return;
+    }
+
+    // try to login
+    const loginResponse = await fetch(`/api/login`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username, password
+      })
+    });
+
+    // on successful login
+    if (loginResponse.ok) {
+      const {token} = await loginResponse.json();
+
+      dispatch(setToken(token));
+
+      toast.success("Login successful");
+    } 
+    // on login fail/error
+    else {
+      toast.error("Failed to login");
+    }
   };
 
   return (
@@ -59,6 +91,7 @@ if (user) {
           </pre>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
